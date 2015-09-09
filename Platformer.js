@@ -2,65 +2,41 @@ window.onload = Platformer;
 
 function Platformer () {
 
-	var needRender, needMove;
-	var horizontalVelocity = 0;
-	var block = document.getElementById("blockCanvas");
+	var needRender = true; //Used in checking if the canvas needs to be rerendered.
+	var canvas = document.getElementById("blockCanvas"); //The gameplay field in which game events take place in.
+	var keysPressed = [undefined, undefined, undefined]; //Keeps track of left, right, and up (in that order) keys pressed.
 
-	block.x = 0;
-	block.y = 350;
-	block.destX = block.x;
-	block.destY = block.y;
-	block.context = block.getContext("2d");
-
-	block.context.rect(block.x, block.y, 50, 50);
-	block.context.stroke();
-
-	function move (bool) { //Sets needMove to bool, either signalling the need of a move or resetting it.
-
-		needMove = bool;
-	};
+	canvas.block = {}; //Main block that the user moves.
+	canvas.block.x = 0; //Block x coordinate.
+	canvas.block.y = 350; //Block y coordinate.
+	canvas.block.movingHorizontal = 0; //Used in determining the direction of the sprite and how many pixels to move by horizontally.
+	canvas.context = canvas.getContext("2d");
 
 	function render (bool) { //Sets needRender to bool, either signalling the need of a rerender or resetting it.
 
 		needRender = bool;
-	};
+	}; 
 
 	function tick () {
 
 		//Functionality script here
 
-		switch(true) {
+		if (canvas.block.movingHorizontal != 0) { //Is moving horizontal
 
-			case (block.x < block.destX):
-
-				console.log("Moving right by " + horizontalVelocity + " pixels per tick...");
-				block.x += horizontalVelocity;
-				render(true); //Signals tick cycle that the sprite has moved and needs to be rendered again.
-
-				if(block.x === block.destX) resetVelocity();
-
-				break;
-
-			case (block.x > block.destX):
-
-				console.log("Moving left by " + -horizontalVelocity + " pixels per tick...");
-				block.x += horizontalVelocity; //Moves sprite by the velocity
-				render(true); //Signals tick cycle that the sprite has moved and needs to be rendered again.
-
-				if(block.x === block.destX) resetVelocity();
-
-				break;
-		}
+			console.log("Changing block's x value by " + canvas.block.movingHorizontal + " pixels...")
+            canvas.block.x += canvas.block.movingHorizontal;
+            render(true);
+        }
 
 		//Canvas rendering script here.
 
-		if(needRender === true) { //Needs to be rerendered.
+		if(needRender) { //Needs to be rerendered.
 
-			console.log("Rerendering sprite...");
+			console.log("Rendering sprite...");
 			render(false); //Resets the signal to rerender.
-			block.width = block.width; //Clears rectangles by updating width.
-			block.context.rect(block.x, block.y, 50, 50); //Redraws rectangle.
-			block.context.stroke(); //Solidifies rectangle.
+			canvas.width = canvas.width; //Clears rectangles by updating width.
+			canvas.context.rect(canvas.block.x, canvas.block.y, 50, 50); //Redraws rectangle.
+			canvas.context.stroke(); //Solidifies rectangle.
 		}
 
 		//Callback script
@@ -70,39 +46,56 @@ function Platformer () {
 
 	window.requestAnimationFrame(tick);
 
-	function resetVelocity () { //Resets velocity to 0.
-
-		console.log("Resetting velocity...");
-		horizontalVelocity = 0;
-	};
-
 	//Key codes: up=38, left=37, right=39, z=90.
 
-	function keyPress (key) {
+	function leftPress () {
+
+		canvas.block.movingHorizontal = -5; //Move 0.5 meters left per tick.
+	};
+
+	function rightPress () {
+
+		canvas.block.movingHorizontal = 5; //Move 0.5 meters right per tick.
+	};
+
+	function upPress () {
+
+		//Move 10 meters up.
+		//Not implemented yet.
+	};
+
+	function keydown (key) {
 
 		var code = key.keyCode;
-		//alert(code);
 
-		switch(true) { //Parses keyCode for appropriate movement.
+		key.preventDefault();
 
-			case (code === 39 && horizontalVelocity === 0): //Right
+		if(code === 37) keysPressed[0] = true;
 
-				horizontalVelocity += 5;
-				if(horizontalVelocity < 0) resetVelocity(); //Resets velocity if already moving left.
-				if(horizontalVelocity > 20) horizontalVelocity = 20; //Caps velocity at 20.
-				if(horizontalVelocity > 0) block.destX += 20; //Move 2 meters right if valid velocity exists.
-				move(true);
-				break;
+		if(code === 39) keysPressed[1] = true;
 
-			case (code === 37 && horizontalVelocity === 0): //Left
+		if(code === 38) keysPressed[2] = true;
 
-				horizontalVelocity -= 5;
-				if(horizontalVelocity > 0) resetVelocity(); //Resets velocity if already moving right.
-				if(horizontalVelocity < -20) horizontalVelocity = -20; //Caps velocity at -20.
-				if(horizontalVelocity < 0) block.destX -= 20; //Move 2 meters left if valid velocity exists.
-				move(true);
-				break;
-		}
+		if(keysPressed[0]) leftPress();
+
+		if(keysPressed[1]) rightPress();
+
+		if(keysPressed[2]) upPress();
 	};
-	document.onkeydown = keyPress;
+
+	function keyup (key) {
+
+		var code = key.keyCode;
+
+		if(code === 37 && keysPressed[0]) keysPressed[0] = false;
+
+		if(code === 39 && keysPressed[1]) keysPressed[1] = false;
+
+		if(code === 38 && keysPressed[2]) keysPressed[2] = false;
+
+		if(code === 37 || code === 39) canvas.block.movingHorizontal = 0;
+	};
+
+	document.onkeydown = keydown;
+	document.onkeyup = keyup;
 };
