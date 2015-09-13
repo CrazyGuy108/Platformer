@@ -5,12 +5,16 @@ function Platformer () {
 	var needRender = true; //Used in checking if the canvas needs to be rerendered.
 	var canvas = document.getElementById("blockCanvas"); //The gameplay field in which game events take place in.
 	var keysPressed = [undefined, undefined, undefined]; //Keeps track of left, right, and up (in that order) keys pressed.
+	var up = true; //Used in keeping track of if the block can jump.
 
 	canvas.block = {}; //Main block that the user moves.
 	canvas.block.x = 0; //Block x coordinate.
-	canvas.block.y = 350; //Block y coordinate.
-	canvas.block.movingHorizontal = 0; //Used in determining the direction of the sprite and how many pixels to move by horizontally.
-	canvas.context = canvas.getContext("2d");
+	canvas.block.y = canvas.height - 50; //Block y coordinate.
+	canvas.block.destY = canvas.block.y; //Block destination y coordinate, used for controlling jump height.
+	canvas.block.normY = canvas.block.y; //Block normal y coordinate, used for falling.
+	canvas.block.movingHorizontal = 0; //Used in determining the horizontal direction and velocity in pixels per tick.
+	canvas.block.movingVertical = 0; //Used in determining vertical direction and velocity in pixels per tick.
+	canvas.context = canvas.getContext("2d"); //Context is 2d.
 
 	function render (bool) { //Sets needRender to bool, either signalling the need of a rerender or resetting it.
 
@@ -19,13 +23,33 @@ function Platformer () {
 
 	function tick () {
 
-		//Functionality script here
+		//Functionality script here.
 
-		if (canvas.block.movingHorizontal != 0) { //Is moving horizontal
+		if (canvas.block.movingHorizontal !== 0) { //Is moving horizontal.
 
-			console.log("Changing block's x value by " + canvas.block.movingHorizontal + " pixels...")
-            canvas.block.x += canvas.block.movingHorizontal;
+			console.log("Changing block's x value by " + canvas.block.movingHorizontal + " pixels...");
+            canvas.block.x += canvas.block.movingHorizontal; //Moves.
             render(true);
+        }
+
+        if(canvas.block.y < canvas.block.normY && canvas.block.y === canvas.block.destY) { //Reached jump top;
+
+			canvas.block.movingVertical = 5; //Move 0.5 meters down per tick.
+			canvas.block.destY = canvas.block.normY; //Block falls instead of jumps.
+		}
+
+        if(canvas.block.movingVertical !== 0 && canvas.block.destY !== canvas.block.y) { //Is moving vertical.
+
+        	console.log("Changing block's y value by " + canvas.block.movingVertical + " pixels...");
+        	canvas.block.y += canvas.block.movingVertical; //Moves.
+        	render(true);
+
+        	if(canvas.block.destY === canvas.block.y && canvas.block.normY === canvas.block.y) { //Successfully landed.
+
+        		up = true; //Can now jump.
+        		canvas.block.movingVertical = 0; //No longer moving vertical.
+        		console.log("Jump successful.")
+        	}
         }
 
 		//Canvas rendering script here.
@@ -39,7 +63,7 @@ function Platformer () {
 			canvas.context.stroke(); //Solidifies rectangle.
 		}
 
-		//Callback script
+		//Callback script.
 
 		window.requestAnimationFrame(tick);
 	};
@@ -60,8 +84,13 @@ function Platformer () {
 
 	function upPress () {
 
-		//Move 10 meters up.
-		//Not implemented yet.
+		if(up) {
+
+			console.log("Jumping...");
+			up = false; //Cannot jump while jumping.
+			canvas.block.movingVertical = -5; //Move 0.5 meters up per tick.
+			canvas.block.destY = canvas.block.y - 100; //Move 10 meters up altogether.
+		}
 	};
 
 	function keydown (key) {
