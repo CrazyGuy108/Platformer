@@ -15,11 +15,12 @@ function Platformer () {
 	canvas.block.movingHorizontal = 0; //Used in determining the horizontal direction and velocity in pixels per tick.
 	canvas.block.movingVertical = 0; //Used in determining vertical direction and velocity in pixels per tick.
 	canvas.context = canvas.getContext("2d"); //Context is 2d.
+	canvas.context.beginPath();
 
-	function render (bool) { //Sets needRender to bool, either signalling the need of a rerender or resetting it.
+	function render (bool) { //Flags that the canvas needs rerendered or that it already has rendered.
 
 		needRender = bool;
-	}; 
+	};
 
 	function tick () {
 
@@ -27,7 +28,7 @@ function Platformer () {
 
 		if (canvas.block.movingHorizontal !== 0) { //Is moving horizontal.
 
-			console.log("Changing block's x value by " + canvas.block.movingHorizontal + " pixels...");
+			console.log("Changing block x value by " + canvas.block.movingHorizontal + " pixels...");
             canvas.block.x += canvas.block.movingHorizontal; //Moves.
             render(true);
         }
@@ -40,7 +41,7 @@ function Platformer () {
 
         if(canvas.block.movingVertical !== 0 && canvas.block.destY !== canvas.block.y) { //Is moving vertical.
 
-        	console.log("Changing block's y value by " + canvas.block.movingVertical + " pixels...");
+        	console.log("Changing block y value by " + canvas.block.movingVertical + " pixels...");
         	canvas.block.y += canvas.block.movingVertical; //Moves.
         	render(true);
 
@@ -48,7 +49,7 @@ function Platformer () {
 
         		up = true; //Can now jump.
         		canvas.block.movingVertical = 0; //No longer moving vertical.
-        		console.log("Jump successful.")
+        		console.log("Jump successful.");
         	}
         }
 
@@ -58,9 +59,11 @@ function Platformer () {
 
 			console.log("Rendering sprite...");
 			render(false); //Resets the signal to rerender.
-			canvas.width = canvas.width; //Clears rectangles by updating width.
-			canvas.context.rect(canvas.block.x, canvas.block.y, 50, 50); //Redraws rectangle.
-			canvas.context.stroke(); //Solidifies rectangle.
+			canvas.context.clearRect(0, 0, canvas.width, canvas.height); //Clears the sprite.
+			canvas.context.rect(canvas.block.x, canvas.block.y, 50, 50); //Selects rectangle.
+			canvas.context.stroke(); //Draws rectangle.
+			canvas.context.closePath(); //Closes and begins a new path.
+			canvas.context.beginPath();
 		}
 
 		//Callback script.
